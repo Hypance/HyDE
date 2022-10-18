@@ -81,8 +81,15 @@ WSGI_APPLICATION = 'hyde.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
-DATABASES = {"default": env.db("DATABASE_URL")}
+DATABASES = {
+    "default": {'ENGINE':'django.db.backends.sqlite3', 'NAME':BASE_DIR / 'db.sqlite3'},
+    "engine_db": env.db("DATABASE_URL"),
+        }
 
+DATABASE_ROUTERS = [
+    'routers.db_routers.DefaultRouter',
+    'routers.db_routers.EngineRouter', 
+    ]
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators

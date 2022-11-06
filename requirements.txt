@@ -1,5 +1,7 @@
 git+https://github.com/Hypance/HypanceDataAnalysis.git
+numpy==1.23.3
 Django==4.1.2
 django-environ==0.9.0
 django-extensions==3.2.1
 psycopg2==2.9.4
+celery==5.2.7

@@ -84,7 +84,7 @@ WSGI_APPLICATION = 'hyde.wsgi.application'
 
 DATABASES = {
     "default": {'ENGINE':'django.db.backends.sqlite3', 'NAME':BASE_DIR / 'db.sqlite3'},
-    "engine_db": env.db("DATABASE_URL"),
+    "hypance_db": env.db("ENGINE_URL"),
         }
 
 DATABASE_ROUTERS = [

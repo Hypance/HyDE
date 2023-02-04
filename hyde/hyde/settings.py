@@ -43,9 +43,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # 'django-celery-beat',
+    # 'django_celery_results',
     'django_extensions',
     'engine',
-    'django_celery_results',
 ]
 
 MIDDLEWARE = [
@@ -134,6 +135,13 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Celery settings
-CELERY_BROKER_URL = "amqp://admin:admin@rabbit:5672//"
-CELERY_RESULT_BACKEND = "django-db"
-CELERY_CACHE_BACKEND = "django-cache"
+CELERY = {
+    # 'broker_url': f'{env.db("RABBITMQ_URL")}',
+    'imports': ('engine.tasks', ),
+    'task_serializer': 'json',
+    'result_serializer': 'json',
+    'accept_content': ['json'],
+}
+# CELERY_BROKER_URL = env.db("RABBITMQ_URL")
+# CELERY_RESULT_BACKEND = "django-db"
+# CELERY_CACHE_BACKEND = "django-cache"

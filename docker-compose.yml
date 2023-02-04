@@ -1,51 +1,119 @@
-version: "3"
+version: '3.2'
 
 services:
-  backend:
-    build:
-      context: .
-    image: backend-image
-    container_name: backend
-    hostname: backend
+  app:
+    container_name: app
+    build: ./
+    image: &hyde hyde
     restart: on-failure
+    command: sh -c "python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    env_file:
+      &envfile
+      - env.env
     ports:
-      - "8080:8080"
+      - "8000:8000"
     volumes:
-      - .:/hyde_project
-    command: >
-      sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8080"
-    stdin_open: true
-    tty: true
+      - ./hyde:/hyde
     depends_on:
       - rabbit
     networks:
-      - shared_network
-
-  rabbit:
-    image: rabbitmq:3.11-management
-    container_name: rabbit
-    hostname: rabbit
-    environment:
-      - RABBITMQ_DEFAULT_USER=admin
-      - RABBITMQ_DEFAULT_PASS=admin
-      - RABBITMQ_DEFAULT_VHOST=/
-    ports:
-      - "5682:5672"
-      - "15682:15672"
-    networks:
-      - shared_network
+      - app_network
 
   worker:
-    image: backend-image
+    build: .
+    image: *hyde
     restart: on-failure
-    command: >
-      sh -c "celery worker -B -l info -A mypubsub.celery -s /tmp/celerybeat-schedule"
+    env_file: *envfile
+    container_name: worker
+    command: sh -c "celery -A engine.celery.app worker -l info"
+    volumes:
+      - ./hyde:/hyde
     depends_on:
-      - backend
+      - app
       - rabbit
+      - app_db
     networks:
-      - shared_network
+      - app_network
+
+  rabbit:
+    container_name: rabbit
+    image: rabbitmq:management
+    # env_file: *envfile
+    environment:
+      - RABBITMQ_PASS=guest
+    ports:
+      - "5672:5672"
+      - 15672:15672
+    networks:
+      - app_network
+    restart: on-failure
+
+  # app:
+  #   container_name: app
+  #   build: ./
+  #   image: &hyde hyde
+  #   restart: on-failure
+  #   command: [ "python", "manage.py", "runserver", "0.0.0.0:8000" ]
+  #   env_file:
+  #     &envfile
+  #     - env.env
+  #   ports:
+  #     - "8000:8000"
+  #   volumes:
+  #     - ./hyde:/hyde
+  #   depends_on:
+  #     - app_rabbit_broker
+  #   networks:
+  #     - app_network
+
+  # worker_engine:
+  #   build: .
+  #   image: *hyde
+  #   restart: on-failure
+  #   env_file: *envfile
+  #   container_name: worker_engine
+  #   command: sh -c "celery -A engine.celery.app worker -l info"
+  #   volumes:
+  #     - ./hyde:/hyde
+  #   depends_on:
+  #     - app
+  #     - rabbit
+  #     - app_db
+  #   networks:
+  #     - app_network
+
+
+  # flower:
+  #   image: zoomeranalytics/flower:0.9.1-4.0.2
+  #   restart: on-failure
+  #   env_file: *envfile
+  #   ports:
+  #     - "5555:5555"
+  #   depends_on:
+  #     - app_rabbit_broker
+  #   networks:
+  #     - app_network
+
+  # app_rabbit_broker:
+  #   container_name: app_rabbitmq
+  #   image: rabbitmq:management
+  #   env_file: *envfile
+  #   ports:
+  #     - "5672:5672"
+  #     - 15672:15672
+  #   networks:
+  #     - app_network
+  #   restart: on-failure
+
+  app_db:
+    container_name: app_db
+    image: postgres:13.1
+    environment:
+      - POSTGRES_USER=app_user
+      - POSTGRES_PASSWORD=changeme
+      - POSTGRES_DB=app_db
+    networks:
+      - app_network
 
 networks:
-  shared_network:
-    driver: bridge  
+  app_network:

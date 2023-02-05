@@ -83,16 +83,16 @@ services:
   #     - app_network
 
 
-  # flower:
-  #   image: zoomeranalytics/flower:0.9.1-4.0.2
-  #   restart: on-failure
-  #   env_file: *envfile
-  #   ports:
-  #     - "5555:5555"
-  #   depends_on:
-  #     - app_rabbit_broker
-  #   networks:
-  #     - app_network
+  flower:
+    image: mher/flower
+    restart: on-failure
+    env_file: *envfile
+    ports:
+      - "5555:5555"
+    depends_on:
+      - rabbit
+    networks:
+      - app_network
 
   # app_rabbit_broker:
   #   container_name: app_rabbitmq

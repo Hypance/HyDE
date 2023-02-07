@@ -20,7 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env()
 
 # Get environment variables from .env file
-env.read_env(str(BASE_DIR / ".env"))
+env.read_env(str(BASE_DIR.parent / "env_dev"))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
@@ -43,8 +43,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_celery_beat',
+    'django_celery_results',
     'django_extensions',
-    'engine'
+    'engine',
 ]
 
 MIDDLEWARE = [
@@ -82,8 +84,17 @@ WSGI_APPLICATION = 'hyde.wsgi.application'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
 DATABASES = {
-    "default": {'ENGINE':'django.db.backends.sqlite3', 'NAME':BASE_DIR / 'db.sqlite3'},
+    # "default": {'ENGINE':'django.db.backends.sqlite3', 'NAME':BASE_DIR / 'db.sqlite3'},
+    # "default": env.db("DEFAULT_URL"),
     "hypance_db": env.db("ENGINE_URL"),
+    "default": {
+        "ENGINE": env("SQL_ENGINE"),
+        "NAME": env("SQL_DATABASE"),
+        "USER": env("SQL_USER"),
+        "PASSWORD": env("SQL_PASSWORD"),
+        "HOST": env("SQL_HOST"),
+        "PORT": env("SQL_PORT"),
+    }
         }
 
 DATABASE_ROUTERS = [
@@ -131,3 +142,14 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Celery settings
+CELERY = {
+    'imports': ('engine.tasks', ),
+    'task_serializer': 'json',
+    'result_serializer': 'json',
+    'accept_content': ['json'],
+    'result_backend': env("CELERY_RESULTS_BACKEND_URL"),
+    'beat_scheduler': 'django_celery_beat.schedulers:DatabaseScheduler',
+    # 'cache_backend': env("CELERY_CACHE_BACKEND_URL"),
+}

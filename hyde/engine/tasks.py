@@ -4,7 +4,7 @@ from hyde.celery import app
 
 # Create your tasks here
 
-@app.task
+@shared_task
 def add(x, y):
     return x + y
 

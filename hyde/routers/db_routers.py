@@ -1,5 +1,5 @@
 class DefaultRouter:
-    route_app_labels = {'auth', 'contenttypes', 'sessions', 'admin'}
+    route_app_labels = {'auth', 'contenttypes', 'sessions', 'admin', 'django_celery_beat', 'django_celery_results'}
 
     def db_for_read(self, model, **hints):
         if model._meta.app_label in self.route_app_labels:
